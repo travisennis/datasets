@@ -2,6 +2,7 @@ import type { z } from "zod";
 import {
   createDataSchema,
   datasetInfoSchema,
+  parquetListSchema,
   splitsSchema,
   validationSchema,
 } from "./types.ts";
@@ -48,6 +49,15 @@ export class Datasets<T extends z.ZodTypeAny> {
 
     const info = datasetInfoSchema.parse(response);
     return info;
+  }
+
+  async listParquetFiles() {
+    const response = await this.fetchFromAPI(
+      `${this.baseUrl}/parquet?dataset=${encodeURIComponent(this.dataset)}`,
+    );
+
+    const list = parquetListSchema.parse(response);
+    return list;
   }
 
   // https://datasets-server.huggingface.co/rows?dataset=hotpot_qa&config=distractor&split=train&offset=0&length=100

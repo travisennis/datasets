@@ -110,3 +110,19 @@ export function createDataSchema<T extends z.ZodTypeAny>(schema: T) {
     partial: z.boolean(),
   });
 }
+
+export const parquetListSchema = z.object({
+  parquet_files: z.array(
+    z.object({
+      dataset: z.string(),
+      config: z.string(),
+      split: z.string(),
+      url: z.string().url(),
+      filename: z.string(),
+      size: z.number().positive(),
+    }),
+  ),
+  pending: z.array(z.any()),
+  failed: z.array(z.any()),
+  partial: z.boolean(),
+});
