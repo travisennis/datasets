@@ -75,3 +75,7 @@ const row4 = await results4.next();
 if (!row4.done) {
   log(row4.value.at(0)?.row);
 }
+
+// %%
+const list = await dataloader2.listParquetFiles();
+console.dir(list);
