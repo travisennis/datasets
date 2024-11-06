@@ -1,21 +1,26 @@
+import type { z } from "zod";
 import {
-  dataSchema,
+  createDataSchema,
   datasetInfoSchema,
   splitsSchema,
   validationSchema,
 } from "./types.ts";
 
-export class Datasets {
+export class Datasets<T extends z.ZodTypeAny> {
   private baseUrl: string;
   private dataset: string;
+  private datasetSchema: ReturnType<typeof createDataSchema<T>>;
 
   constructor({
     dataset,
+    schema,
   }: Readonly<{
     dataset: string;
+    schema: T;
   }>) {
     this.baseUrl = "https://datasets-server.huggingface.co";
     this.dataset = dataset;
+    this.datasetSchema = createDataSchema<T>(schema);
   }
 
   async validate() {
@@ -64,7 +69,7 @@ export class Datasets {
 
     const response = await this.fetchFromAPI(url);
 
-    const data = dataSchema.parse(response);
+    const data = this.datasetSchema.parse(response);
 
     return data.rows;
   }
@@ -87,7 +92,7 @@ export class Datasets {
 
       const response = await this.fetchFromAPI(url);
 
-      const data = dataSchema.parse(response);
+      const data = this.datasetSchema.parse(response);
 
       if (data.rows.length === 0) {
         return;
@@ -106,7 +111,7 @@ export class Datasets {
       method: "GET",
     });
     if (!response.ok) {
-      throw new Error(`Error fetching data: ${response.statusText}`);
+      throw new Error(`Error fetching data ${url}: ${response.statusText}`);
     }
     return response.json();
   }

@@ -72,37 +72,41 @@ export const datasetInfoSchema = z.object({
 
 export type DatasetInfo = z.infer<typeof datasetInfoSchema>;
 
-export const dataSchema = z.object({
-  features: z.array(
-    z.object({
-      feature_idx: z.number(),
-      name: z.string(),
-      type: z.union([
-        z.object({
-          dtype: z.string(),
-          _type: z.string(),
-        }),
-        z.array(
-          z.record(
-            z.object({
-              dtype: z.string(),
-              _type: z.string(),
-            }),
+export function createDataSchema<T extends z.ZodTypeAny>(schema: T) {
+  return z.object({
+    features: z.array(
+      z.object({
+        feature_idx: z.number(),
+        name: z.string(),
+        type: z.union([
+          z.object({
+            feature: z.any(),
+            _type: z.string(),
+          }),
+          z.object({
+            dtype: z.string(),
+            _type: z.string(),
+          }),
+          z.array(
+            z.record(
+              z.object({
+                dtype: z.string(),
+                _type: z.string(),
+              }),
+            ),
           ),
-        ),
-      ]),
-    }),
-  ),
-  rows: z.array(
-    z.object({
-      row_idx: z.number(),
-      row: z.record(z.any()),
-      truncated_cells: z.array(z.unknown()),
-    }),
-  ),
-  num_rows_total: z.number(),
-  num_rows_per_page: z.number(),
-  partial: z.boolean(),
-});
-
-export type DatasetRows = z.infer<typeof dataSchema>;
+        ]),
+      }),
+    ),
+    rows: z.array(
+      z.object({
+        row_idx: z.number(),
+        row: schema,
+        truncated_cells: z.array(z.unknown()),
+      }),
+    ),
+    num_rows_total: z.number(),
+    num_rows_per_page: z.number(),
+    partial: z.boolean(),
+  });
+}

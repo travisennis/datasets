@@ -1,9 +1,14 @@
+import type { z } from "zod";
 import { Datasets } from "./datasets.ts";
 
-export function datasets({ dataset }: Readonly<{ dataset: string }>) {
-  return new Datasets({
+export function datasets<T extends z.ZodTypeAny>({
+  dataset,
+  schema,
+}: Readonly<{ dataset: string; schema: T }>) {
+  return new Datasets<T>({
     dataset,
+    schema,
   });
 }
 
-export type { Validation, Splits, DatasetInfo, DatasetRows } from "./types.ts";
+export type { Validation, Splits, DatasetInfo } from "./types.ts";
