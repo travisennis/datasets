@@ -1,3 +1,5 @@
+import fs from "node:fs/promises";
+import * as path from "node:path";
 import type { z } from "zod";
 import {
   createDataSchema,
@@ -58,6 +60,62 @@ export class Datasets<T extends z.ZodTypeAny> {
 
     const list = parquetListSchema.parse(response);
     return list;
+  }
+
+  async downloadParquetFiles({
+    downloadDir,
+  }: { downloadDir?: string }): Promise<string[]> {
+    try {
+      const destPath = path.join(
+        downloadDir ||
+          `${process.env.XDG_CACHE_HOME || `${process.env.HOME}/.cache`}/dataset-downloads`,
+        this.dataset,
+      );
+
+      // Get list of parquet files
+      const parquetFiles = await this.listParquetFiles();
+
+      const parquetUrls = parquetFiles.parquet_files; //.map((file) => [
+      //   file.filename,
+      //   file.url,
+      // ]);
+
+      console.dir(parquetUrls);
+
+      if (!parquetUrls.length) {
+        throw new Error("No parquet files found");
+      }
+
+      // Download each parquet file
+      const downloadPromises = parquetUrls.map(async (file, index) => {
+        const finalDest = path.join(destPath, file.config, file.split);
+        await fs.mkdir(finalDest, {
+          recursive: true,
+        });
+
+        const url = file.url;
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to download ${url}: ${response.statusText}`);
+        }
+        const blob = await response.blob();
+        const fileName = file.filename ?? `${this.dataset}${index}.parquet`;
+        const filePath = path.join(finalDest, fileName);
+
+        // Save file to local filesystem
+        const arrayBuffer = await blob.arrayBuffer();
+        await fs.writeFile(filePath, Buffer.from(arrayBuffer));
+
+        return filePath;
+      });
+
+      // Wait for all downloads to complete
+      const downloadedFiles = await Promise.all(downloadPromises);
+      return downloadedFiles;
+    } catch (error) {
+      console.error("Error downloading parquet files:", error);
+      throw error;
+    }
   }
 
   // https://datasets-server.huggingface.co/rows?dataset=hotpot_qa&config=distractor&split=train&offset=0&length=100

@@ -79,3 +79,7 @@ if (!row4.done) {
 // %%
 const list = await dataloader2.listParquetFiles();
 console.dir(list);
+
+// %%
+const downloadPaths = await dataloader2.downloadParquetFiles({});
+console.dir(downloadPaths);
