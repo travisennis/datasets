@@ -90,6 +90,9 @@ Returns an async iterator for streaming dataset rows.
 - `options.options.offset`: Starting row index
 - `options.options.length`: Batch size
 
+## Reference
+* [HuggingFace Dataset Viewer](https://huggingface.co/docs/dataset-viewer/en/index)
+
 ## License
 
 MIT
