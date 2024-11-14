@@ -9,21 +9,31 @@ import {
   validationSchema,
 } from "./types.ts";
 
-export class Datasets<T extends z.ZodTypeAny> {
+export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   private baseUrl: string;
   private dataset: string;
   private datasetSchema: ReturnType<typeof createDataSchema<T>>;
+  private transform?: {
+    schema: U;
+    map: (input: z.infer<U>) => z.infer<T>;
+  };
 
   constructor({
     dataset,
     schema,
+    transform,
   }: Readonly<{
     dataset: string;
     schema: T;
+    transform?: {
+      schema: U;
+      map: (input: z.infer<U>) => z.infer<T>;
+    };
   }>) {
     this.baseUrl = "https://datasets-server.huggingface.co";
     this.dataset = dataset;
     this.datasetSchema = createDataSchema<T>(schema);
+    this.transform = transform;
   }
 
   async validate() {
@@ -75,12 +85,7 @@ export class Datasets<T extends z.ZodTypeAny> {
       // Get list of parquet files
       const parquetFiles = await this.listParquetFiles();
 
-      const parquetUrls = parquetFiles.parquet_files; //.map((file) => [
-      //   file.filename,
-      //   file.url,
-      // ]);
-
-      console.dir(parquetUrls);
+      const parquetUrls = parquetFiles.parquet_files;
 
       if (!parquetUrls.length) {
         throw new Error("No parquet files found");
@@ -137,8 +142,15 @@ export class Datasets<T extends z.ZodTypeAny> {
 
     const response = await this.fetchFromAPI(url);
 
-    const data = this.datasetSchema.parse(response);
+    if (this.transform) {
+      const intermediate = this.transform.map(
+        createDataSchema<U>(this.transform.schema).parse(response),
+      );
+      const data = this.datasetSchema.parse(intermediate);
+      return data.rows;
+    }
 
+    const data = this.datasetSchema.parse(response);
     return data.rows;
   }
 
@@ -160,13 +172,31 @@ export class Datasets<T extends z.ZodTypeAny> {
 
       const response = await this.fetchFromAPI(url);
 
-      const data = this.datasetSchema.parse(response);
+      if (this.transform) {
+        const intermediate = createDataSchema<U>(this.transform.schema).parse(
+          response,
+        );
 
-      if (data.rows.length === 0) {
-        return;
+        intermediate.rows = intermediate.rows.map((r) =>
+          Object.assign(r, { row: this.transform?.map(r.row) }),
+        );
+
+        const data = this.datasetSchema.parse(intermediate);
+        if (data.rows.length === 0) {
+          return;
+        }
+
+        yield data.rows;
+      } else {
+        const data = this.datasetSchema.parse(response);
+
+        if (data.rows.length === 0) {
+          return;
+        }
+
+        yield data.rows;
       }
 
-      yield data.rows;
       currentOffset += length;
     }
   }
