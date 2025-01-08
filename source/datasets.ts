@@ -9,7 +9,7 @@ import {
   validationSchema,
 } from "./types.ts";
 
-export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
+export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> {
   private baseUrl: string;
   private dataset: string;
   private datasetSchema: ReturnType<typeof createDataSchema<T>>;
