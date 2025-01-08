@@ -9,7 +9,7 @@ import {
   validationSchema,
 } from "./types.ts";
 
-export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> {
+export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   private baseUrl: string;
   private dataset: string;
   private datasetSchema: ReturnType<typeof createDataSchema<T>>;
@@ -41,8 +41,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> 
       `${this.baseUrl}/is-valid?dataset=${encodeURIComponent(this.dataset)}`,
     );
 
-    const validation = validationSchema.parse(response);
-    return validation;
+    return validationSchema.parse(response);
   }
 
   async splits() {
@@ -50,8 +49,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> 
       `${this.baseUrl}/splits?dataset=${encodeURIComponent(this.dataset)}`,
     );
 
-    const splits = splitsSchema.parse(response);
-    return splits;
+    return splitsSchema.parse(response);
   }
 
   async info(config = "default") {
@@ -59,8 +57,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> 
       `${this.baseUrl}/info?dataset=${encodeURIComponent(this.dataset)}&config=${config}`,
     );
 
-    const info = datasetInfoSchema.parse(response);
-    return info;
+    return datasetInfoSchema.parse(response);
   }
 
   async listParquetFiles() {
@@ -68,8 +65,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> 
       `${this.baseUrl}/parquet?dataset=${encodeURIComponent(this.dataset)}`,
     );
 
-    const list = parquetListSchema.parse(response);
-    return list;
+    return parquetListSchema.parse(response);
   }
 
   async downloadParquetFiles({
@@ -115,8 +111,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = unknown> 
       });
 
       // Wait for all downloads to complete
-      const downloadedFiles = await Promise.all(downloadPromises);
-      return downloadedFiles;
+      return Promise.all(downloadPromises);
     } catch (error) {
       console.error("Error downloading parquet files:", error);
       throw error;
