@@ -1,13 +1,17 @@
 {
   "name": "@travisennis/datasets",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "description": "A typescript library to interact with the HuggingFace Datasets API.",
   "type": "module",
   "exports": {
     "types": "./dist/index.d.ts",
     "default": "./dist/index.js"
   },
-  "keywords": ["huggingface", "datasets", "data"],
+  "keywords": [
+    "huggingface",
+    "datasets",
+    "data"
+  ],
   "author": "Travis Ennis",
   "license": "MIT",
   "scripts": {
