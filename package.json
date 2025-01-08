@@ -1,6 +1,6 @@
 {
   "name": "@travisennis/datasets",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "A typescript library to interact with the HuggingFace Datasets API.",
   "type": "module",
   "exports": {
@@ -26,13 +26,16 @@
     "knip": "npx knip",
     "check": "npx npm-check-updates  --interactive --format group"
   },
-  "dependencies": {
+  "peerDependencies": {
     "zod": "^3.24.1"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/node": "^22.10.2",
+    "@types/node": "^22.10.5",
     "tsx": "^4.19.2",
     "typescript": "^5.7.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
