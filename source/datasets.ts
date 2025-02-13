@@ -1,5 +1,5 @@
 import fs from "node:fs/promises";
-import * as path from "node:path";
+import { join } from "node:path";
 import type { z } from "zod";
 import {
   createDataSchema,
@@ -13,10 +13,12 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   private baseUrl: string;
   private dataset: string;
   private datasetSchema: ReturnType<typeof createDataSchema<T>>;
-  private transform?: {
-    schema: U;
-    map: (input: z.infer<U>) => z.infer<T>;
-  };
+  private transform:
+    | {
+        schema: U;
+        map: (input: z.infer<U>) => z.infer<T>;
+      }
+    | undefined;
 
   constructor({
     dataset,
@@ -37,7 +39,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   }
 
   async validate() {
-    const response = await this.fetchFromAPI(
+    const response = await this.fetchFromApi(
       `${this.baseUrl}/is-valid?dataset=${encodeURIComponent(this.dataset)}`,
     );
 
@@ -45,7 +47,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   }
 
   async splits() {
-    const response = await this.fetchFromAPI(
+    const response = await this.fetchFromApi(
       `${this.baseUrl}/splits?dataset=${encodeURIComponent(this.dataset)}`,
     );
 
@@ -53,7 +55,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   }
 
   async info(config = "default") {
-    const response = await this.fetchFromAPI(
+    const response = await this.fetchFromApi(
       `${this.baseUrl}/info?dataset=${encodeURIComponent(this.dataset)}&config=${config}`,
     );
 
@@ -61,7 +63,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
   }
 
   async listParquetFiles() {
-    const response = await this.fetchFromAPI(
+    const response = await this.fetchFromApi(
       `${this.baseUrl}/parquet?dataset=${encodeURIComponent(this.dataset)}`,
     );
 
@@ -72,9 +74,12 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
     downloadDir,
   }: { downloadDir?: string }): Promise<string[]> {
     try {
-      const destPath = path.join(
+      const destPath = join(
         downloadDir ||
-          `${process.env.XDG_CACHE_HOME || `${process.env.HOME}/.cache`}/dataset-downloads`,
+          `${
+            // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+            process.env["XDG_CACHE_HOME"] || `${process.env["HOME"]}/.cache`
+          }/dataset-downloads`,
         this.dataset,
       );
 
@@ -83,13 +88,13 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
 
       const parquetUrls = parquetFiles.parquet_files;
 
-      if (!parquetUrls.length) {
+      if (parquetUrls.length === 0) {
         throw new Error("No parquet files found");
       }
 
       // Download each parquet file
       const downloadPromises = parquetUrls.map(async (file, index) => {
-        const finalDest = path.join(destPath, file.config, file.split);
+        const finalDest = join(destPath, file.config, file.split);
         await fs.mkdir(finalDest, {
           recursive: true,
         });
@@ -101,7 +106,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
         }
         const blob = await response.blob();
         const fileName = file.filename ?? `${this.dataset}${index}.parquet`;
-        const filePath = path.join(finalDest, fileName);
+        const filePath = join(finalDest, fileName);
 
         // Save file to local filesystem
         const arrayBuffer = await blob.arrayBuffer();
@@ -135,7 +140,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
 
     const url = `${this.baseUrl}/rows?dataset=${ds}&config=${config}&split=${split}&offset=${offset}&length=${length}`;
 
-    const response = await this.fetchFromAPI(url);
+    const response = await this.fetchFromApi(url);
 
     if (this.transform) {
       const intermediate = this.transform.map(
@@ -165,7 +170,7 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
     while (true) {
       const url = `${this.baseUrl}/rows?dataset=${ds}&config=${config}&split=${split}&offset=${currentOffset}&length=${length}`;
 
-      const response = await this.fetchFromAPI(url);
+      const response = await this.fetchFromApi(url);
 
       if (this.transform) {
         const intermediate = createDataSchema<U>(this.transform.schema).parse(
@@ -196,10 +201,14 @@ export class Datasets<T extends z.ZodTypeAny, U extends z.ZodTypeAny = any> {
     }
   }
 
-  private async fetchFromAPI(url: string): Promise<unknown> {
+  private async fetchFromApi(url: string): Promise<unknown> {
     const response = await fetch(url, {
       headers: {
-        Authorization: `Bearer ${process.env.HUGGINGFACE_ACCESS_TOKEN}`,
+        // biome-ignore lint/style/useNamingConvention: <explanation>
+        Authorization: `Bearer ${
+          // biome-ignore lint/complexity/useLiteralKeys: <explanation>
+          process.env["HUGGINGFACE_ACCESS_TOKEN"]
+        }`,
       },
       method: "GET",
     });

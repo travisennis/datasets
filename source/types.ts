@@ -25,16 +25,21 @@ export const splitsSchema = z.object({
 export type Splits = z.infer<typeof splitsSchema>;
 
 export const datasetInfoSchema = z.object({
+  // biome-ignore lint/style/useNamingConvention: Third-party API
   dataset_info: z.object({
     description: z.string(),
     citation: z.string(),
     homepage: z.string(),
     license: z.string(),
     features: z.record(z.any()),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     builder_name: z.string(),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     dataset_name: z.string(),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     config_name: z.string(),
     version: z.object({
+      // biome-ignore lint/style/useNamingConvention: Third-party API
       version_str: z.string(),
       major: z.number(),
       minor: z.number(),
@@ -43,28 +48,39 @@ export const datasetInfoSchema = z.object({
     splits: z.object({
       train: z.object({
         name: z.string(),
+        // biome-ignore lint/style/useNamingConvention: Third-party API
         num_bytes: z.number(),
+        // biome-ignore lint/style/useNamingConvention: Third-party API
         num_examples: z.number(),
+        // biome-ignore lint/style/useNamingConvention: Third-party API
         dataset_name: z.string(),
       }),
       validation: z
         .object({
           name: z.string(),
+          // biome-ignore lint/style/useNamingConvention: Third-party API
           num_bytes: z.number(),
+          // biome-ignore lint/style/useNamingConvention: Third-party API
           num_examples: z.number(),
+          // biome-ignore lint/style/useNamingConvention: Third-party API
           dataset_name: z.string(),
         })
         .optional(),
       test: z
         .object({
           name: z.string(),
+          // biome-ignore lint/style/useNamingConvention: Third-party API
           num_bytes: z.number(),
+          // biome-ignore lint/style/useNamingConvention: Third-party API
           num_examples: z.number(),
+          // biome-ignore lint/style/useNamingConvention: Third-party API
           dataset_name: z.string(),
         })
         .optional(),
     }),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     download_size: z.number(),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     dataset_size: z.number(),
   }),
   partial: z.boolean(),
@@ -76,6 +92,7 @@ export function createDataSchema<T extends z.ZodTypeAny>(schema: T) {
   return z.object({
     features: z.array(
       z.object({
+        // biome-ignore lint/style/useNamingConvention: Third-party API
         feature_idx: z.number(),
         name: z.string(),
         type: z.union([
@@ -100,18 +117,23 @@ export function createDataSchema<T extends z.ZodTypeAny>(schema: T) {
     ),
     rows: z.array(
       z.object({
+        // biome-ignore lint/style/useNamingConvention: Third-party API
         row_idx: z.number(),
         row: schema,
+        // biome-ignore lint/style/useNamingConvention: Third-party API
         truncated_cells: z.array(z.unknown()),
       }),
     ),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     num_rows_total: z.number(),
+    // biome-ignore lint/style/useNamingConvention: Third-party API
     num_rows_per_page: z.number(),
     partial: z.boolean(),
   });
 }
 
 export const parquetListSchema = z.object({
+  // biome-ignore lint/style/useNamingConvention: Third-party API
   parquet_files: z.array(
     z.object({
       dataset: z.string(),
